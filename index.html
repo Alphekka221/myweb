@@ -1,549 +1,1088 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agent 使用情况</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>教材智能问答 · 学生端</title>
 <style>
-  :root {
-    --bg: #f6f7fb;
-    --surface: #ffffff;
-    --text: #1f2430;
-    --text-muted: #5b6472;
-    --accent-blue: #2f6bff;
-    --accent-purple: #7c5cff;
-    --accent-teal: #0e9f8a;
-    --border: rgba(31, 36, 48, 0.10);
-    --radius-card: 16px;
-    --shadow: 0 6px 24px rgba(31, 36, 48, 0.07);
-  }
+:root{
+  --bg:#f5f7fb; --panel:#ffffff; --panel-2:#fafbff;
+  --ink:#1b2333; --ink-2:#3c465c; --muted:#8a93a6;
+  --line:#e6eaf2; --line-2:#eef1f7;
+  --brand:#3a5bd9; --brand-soft:#eef2ff; --brand-ink:#2a42a8;
+  --ok:#17915c; --warn:#b7791f; --mark:#ffe8a3; --mark-ink:#7a4b00;
+  --shadow:0 1px 2px rgba(20,30,60,.05), 0 8px 24px rgba(20,30,60,.06);
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#d7dce8;border-radius:8px;border:3px solid transparent;background-clip:content-box}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* ---------- 顶栏 ---------- */
+.topbar{
+  position:sticky; top:0; z-index:30; background:rgba(255,255,255,.92);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.topbar-in{max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.3px}
+.logo .dot{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#4f6ef7,#7b8cff);
+  display:grid;place-items:center;color:#fff;font-size:14px}
+.logo small{display:block;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:0}
+.tabs{display:flex;gap:4px;background:var(--line-2);padding:4px;border-radius:12px;margin-left:auto}
+.tabs button{border:0;background:transparent;padding:7px 16px;border-radius:9px;color:var(--ink-2);font-size:14px}
+.tabs button.on{background:#fff;color:var(--brand-ink);font-weight:600;box-shadow:0 1px 3px rgba(20,30,60,.12)}
+.bookpick{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.bookpick select{max-width:260px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
 
-  body {
-    font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.75;
-    padding: 48px 20px 80px;
-  }
+/* ---------- 布局 ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.pad{padding:20px}
+.hint{color:var(--muted);font-size:13px}
+.view{display:none}
+.view.on{display:block}
 
-  .page { max-width: 960px; margin: 0 auto; }
+/* ---------- 搜索区 ---------- */
+.hero{text-align:center;padding:34px 20px 26px}
+.hero h1{margin:0 0 8px;font-size:26px;letter-spacing:-.2px}
+.hero p{margin:0;color:var(--muted);font-size:14px}
+.searchbox{display:flex;gap:10px;max-width:760px;margin:22px auto 0}
+.searchbox input{
+  flex:1;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:#fff;
+  box-shadow:var(--shadow);outline:none;font-size:15px;transition:border-color .15s,box-shadow .15s;
+}
+.searchbox input:focus{border-color:#b8c4f5;box-shadow:0 0 0 4px rgba(58,91,217,.10)}
+.btn{padding:14px 26px;border:0;border-radius:14px;background:var(--brand);color:#fff;font-weight:600;box-shadow:0 6px 16px rgba(58,91,217,.24)}
+.btn:hover{background:#3350c9}
+.btn.ghost{background:#fff;color:var(--ink-2);border:1px solid var(--line);box-shadow:none;font-weight:500}
+.btn.ghost:hover{background:var(--panel-2)}
+.btn.sm{padding:8px 14px;border-radius:10px;font-size:13px}
+.btn.danger{background:#fff;color:#c0392b;border:1px solid #f2d4cf}
 
-  /* ---------- 头部 ---------- */
-  header { text-align: center; margin-bottom: 48px; }
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:800px;margin:16px auto 0}
+.chip{border:1px solid var(--line);background:#fff;color:var(--ink-2);padding:6px 13px;border-radius:999px;font-size:13px}
+.chip:hover{border-color:#c3cdf5;background:var(--brand-soft);color:var(--brand-ink)}
+.chip.sec{background:var(--brand-soft);border-color:#dde4ff;color:var(--brand-ink)}
 
-  header h1 {
-    font-size: 40px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    margin-bottom: 12px;
-  }
+/* ---------- 结果 ---------- */
+.qbubble{max-width:760px;margin:26px auto 0;display:flex;gap:12px;align-items:flex-start}
+.qbubble .av{width:32px;height:32px;border-radius:50%;background:var(--brand-soft);color:var(--brand-ink);
+  display:grid;place-items:center;font-size:13px;font-weight:700;flex:none}
+.qbubble .q{background:#fff;border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:10px 16px;box-shadow:var(--shadow)}
+.resultmeta{max-width:820px;margin:18px auto 0;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;align-items:center}
 
-  header .subtitle {
-    color: var(--text-muted);
-    font-size: 16px;
-  }
+.ans{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  max-width:820px;margin:12px auto;padding:16px 18px}
+.ans.top{border-color:#cfdafc;box-shadow:0 2px 4px rgba(20,30,60,.05),0 12px 28px rgba(58,91,217,.12)}
+.ans-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.score{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.bar{width:64px;height:6px;border-radius:4px;background:var(--line-2);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#7b8cff,#3a5bd9)}
+.path{font-size:12.5px;color:var(--brand-ink);background:var(--brand-soft);border:1px solid #e2e8ff;padding:3px 10px;border-radius:8px}
+.ans-body{font-size:15px;color:var(--ink);white-space:pre-wrap;word-break:break-word}
+.ans-body.clip{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+mark{background:var(--mark);color:var(--mark-ink);padding:0 2px;border-radius:3px}
+.ans-foot{display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);flex-wrap:wrap}
+.mini{border:1px solid var(--line);background:#fff;color:var(--ink-2);padding:5px 12px;border-radius:9px;font-size:12.5px}
+.mini:hover{background:var(--panel-2)}
+.mini.on{border-color:#f3d9a5;background:#fffaf0;color:var(--warn)}
 
-  header .divider {
-    width: 72px;
-    height: 4px;
-    border-radius: 2px;
-    margin: 20px auto 0;
-    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-teal));
-  }
+/* ---------- 阅读器 ---------- */
+.reader{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
+.toc{max-height:calc(100vh - 160px);overflow:auto;padding:14px}
+.toc h4{margin:4px 0 12px;font-size:13px;color:var(--muted);font-weight:600}
+.toc a{display:block;padding:6px 10px;border-radius:8px;color:var(--ink-2);text-decoration:none;font-size:13.5px;line-height:1.5}
+.toc a:hover{background:var(--panel-2)}
+.toc a.lv1{font-weight:600;color:var(--ink);margin-top:6px}
+.toc a.lv2{padding-left:22px}
+.toc a.lv3{padding-left:36px;color:var(--muted)}
+.toc a.on{background:var(--brand-soft);color:var(--brand-ink)}
+.reader-body{padding:24px 26px;min-height:400px}
+.reader-body h2{margin:0 0 4px;font-size:19px}
+.reader-body .p{white-space:pre-wrap;margin:0 0 14px;color:var(--ink-2)}
+.reader-nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 
-  header .hint {
-    margin-top: 18px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--text-muted);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 6px 16px;
-    box-shadow: var(--shadow);
-  }
+/* ---------- 录入 ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.drop{border:2px dashed #cfd8ec;border-radius:var(--r);background:var(--panel-2);padding:28px;text-align:center;transition:.15s}
+.drop.over{border-color:var(--brand);background:var(--brand-soft)}
+.drop .big{font-size:34px;margin-bottom:6px}
+.drop b{display:block;margin-bottom:4px}
+.field{margin-top:14px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}
+.field input:focus,.field textarea:focus{border-color:#b8c4f5;box-shadow:0 0 0 3px rgba(58,91,217,.08)}
+textarea{min-height:160px;resize:vertical}
+.prog{height:8px;background:var(--line-2);border-radius:6px;overflow:hidden;margin-top:14px;display:none}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7b8cff,#3a5bd9);transition:width .2s}
+.preview{max-height:420px;overflow:auto;margin-top:6px}
+.kv{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--muted)}
+.kv b{color:var(--ink);font-weight:600}
 
-  /* ---------- 折叠卡片 ---------- */
-  details.accordion {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow);
-    margin-bottom: 24px;
-    overflow: hidden;
-    transition: box-shadow 0.25s ease;
-  }
+/* ---------- 书库 ---------- */
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.bk{padding:18px;display:flex;flex-direction:column;gap:8px}
+.bk h3{margin:0;font-size:16px}
+.bk .meta{font-size:12.5px;color:var(--muted)}
+.bk .acts{display:flex;gap:8px;margin-top:auto;padding-top:12px}
 
-  details.accordion[open] { box-shadow: 0 10px 32px rgba(31, 36, 48, 0.12); }
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty .big{font-size:40px;margin-bottom:10px}
 
-  details.accordion > summary {
-    list-style: none;
-    cursor: pointer;
-    user-select: none;
-    padding: 22px 28px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    transition: background 0.2s ease;
-  }
-
-  details.accordion > summary::-webkit-details-marker { display: none; }
-  details.accordion > summary:hover { background: #fafbfe; }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    color: #fff;
-    font-size: 21px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-
-  .workbuddy .badge { background: linear-gradient(135deg, #2f6bff, #5a8dff); }
-  .trae .badge      { background: linear-gradient(135deg, #d94b26, #f07b48); }
-  .codex .badge     { background: linear-gradient(135deg, #0e9f8a, #35c2ad); }
-
-  .summary-text { flex: 1; min-width: 0; }
-
-  .summary-text h2 {
-    font-size: 23px;
-    font-weight: 700;
-  }
-
-  .summary-text .tagline {
-    color: var(--text-muted);
-    font-size: 13.5px;
-    margin-top: 2px;
-  }
-
-  /* 评分 */
-  .rating {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    font-size: 13px;
-    margin-left: 6px;
-    vertical-align: middle;
-  }
-
-  .chevron {
-    flex-shrink: 0;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    transition: transform 0.3s ease, background 0.2s ease;
-  }
-
-  details[open] .chevron {
-    transform: rotate(180deg);
-    background: #f0f2f8;
-  }
-
-  .body { padding: 6px 28px 30px; }
-
-  .body h3 {
-    font-size: 17px;
-    font-weight: 600;
-    margin: 22px 0 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .body h3::before {
-    content: "";
-    width: 6px;
-    height: 18px;
-    border-radius: 3px;
-    display: inline-block;
-  }
-
-  .workbuddy .body h3::before { background: var(--accent-blue); }
-  .trae .body h3::before      { background: #d94b26; }
-  .codex .body h3::before     { background: var(--accent-teal); }
-
-  .body p, .body li {
-    color: var(--text-muted);
-    font-size: 15px;
-  }
-
-  .body ul, .body ol { padding-left: 22px; margin: 8px 0; }
-  .body li { margin-bottom: 6px; }
-  .body li strong, .body p strong { color: var(--text); }
-
-  /* ---------- 个人感受 ---------- */
-  .feeling {
-    margin: 22px 0 4px;
-    padding: 18px 22px;
-    border-radius: 12px;
-    border-left: 4px solid;
-    position: relative;
-  }
-
-  .workbuddy .feeling { border-color: var(--accent-blue); background: rgba(47, 107, 255, 0.06); }
-  .trae .feeling      { border-color: #d94b26; background: rgba(217, 75, 38, 0.06); }
-  .codex .feeling     { border-color: var(--accent-teal); background: rgba(14, 159, 138, 0.06); }
-
-  .feeling .label {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 6px;
-  }
-
-  .workbuddy .feeling .label { color: var(--accent-blue); }
-  .trae .feeling .label      { color: #c2411f; }
-  .codex .feeling .label     { color: var(--accent-teal); }
-
-  .feeling p {
-    font-size: 15px;
-    color: var(--text) !important;
-    font-style: normal;
-  }
-
-  .callout {
-    margin-top: 18px;
-    padding: 14px 18px;
-    border-radius: 10px;
-    font-size: 14px;
-    background: rgba(47, 107, 255, 0.06);
-    border: 1px dashed rgba(47, 107, 255, 0.35);
-    color: var(--text-muted);
-  }
-
-  .codex .callout {
-    background: rgba(14, 159, 138, 0.06);
-    border-color: rgba(14, 159, 138, 0.35);
-  }
-
-  .trae .callout {
-    background: rgba(217, 75, 38, 0.06);
-    border-color: rgba(217, 75, 38, 0.35);
-  }
-
-  /* ---------- Trae 截图 ---------- */
-  .screenshot {
-    margin-top: 18px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    background: #1b1b1f;
-  }
-
-  .screenshot img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  .screenshot-caption {
-    padding: 10px 16px;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.75);
-    background: #232329;
-  }
-
-  /* ---------- 两栏（学生端 / 教师端） ---------- */
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
-    margin: 14px 0;
-  }
-
-  .mini-card {
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    background: #fafbfe;
-  }
-
-  .mini-card h4 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .mini-card.blue h4 { color: var(--accent-blue); }
-  .mini-card.teal h4 { color: var(--accent-teal); }
-
-  .mini-card ul { padding-left: 18px; margin: 0; }
-  .mini-card li { font-size: 14px; margin-bottom: 5px; }
-
-  /* ---------- 步骤列表 ---------- */
-  .steps { counter-reset: step; list-style: none; padding-left: 0; }
-
-  .steps li {
-    counter-increment: step;
-    position: relative;
-    padding-left: 40px;
-    margin-bottom: 12px;
-  }
-
-  .steps li::before {
-    content: counter(step);
-    position: absolute;
-    left: 0;
-    top: 3px;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--accent-teal);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* ---------- 页面末端：我的信息 ---------- */
-  .profile {
-    margin-top: 44px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow);
-    padding: 30px 36px;
-    text-align: center;
-  }
-
-  .profile h2 {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 16px;
-  }
-
-  .profile .avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    margin: 0 auto 14px;
-    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-teal));
-    color: #fff;
-    font-size: 26px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 14px rgba(47, 107, 255, 0.3);
-  }
-
-  .profile .info-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px 28px;
-    margin-top: 8px;
-  }
-
-  .profile .info-item {
-    font-size: 14.5px;
-    color: var(--text-muted);
-  }
-
-  .profile .info-item strong {
-    color: var(--text);
-    margin-right: 6px;
-  }
-
-  .profile .footnote {
-    margin-top: 18px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-
-  @media (max-width: 720px) {
-    .two-col { grid-template-columns: 1fr; }
-    header h1 { font-size: 30px; }
-    details.accordion > summary { padding: 18px 18px; }
-    .body { padding: 4px 18px 24px; }
-    .profile { padding: 24px 20px; }
-  }
+body.student-only .tabs button[data-view="import"],
+body.student-only .tabs button[data-view="library"]{display:none}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#1b2333;color:#fff;
+  padding:11px 20px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.22s;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:860px){
+  .reader{grid-template-columns:1fr} .grid2{grid-template-columns:1fr}
+  .topbar-in{flex-wrap:wrap} .tabs,.bookpick{margin-left:0;width:100%}
+}
 </style>
 </head>
 <body>
-<div class="page">
 
-  <header>
-    <h1>Agent 使用情况</h1>
-    <p class="subtitle">三个 AI 编程助手（Workbuddy · Trae · Codex）的当前使用概览</p>
-    <div class="divider"></div>
-    <div class="hint">👆 点击下方卡片标题，展开 / 收起查看具体内容</div>
-  </header>
-
-  <!-- ============ Workbuddy ============ -->
-  <details class="accordion workbuddy">
-    <summary>
-      <span class="badge">W</span>
-      <span class="summary-text">
-        <h2>Workbuddy</h2>
-        <span class="tagline">当前正在使用的 Agent · 负责整理与产出</span>
-      </span>
-      <span class="chevron">▾</span>
-    </summary>
-
-    <div class="body">
-      <h3>使用方式</h3>
-      <p>
-        目前的使用方式是<strong>通过对话下发指令</strong>：把在其他工具（Codex、Trae）中形成的构想和结果发给 Workbuddy，
-        由它来完成内容整理与最终产出。本次的具体任务，就是把「学生教师知识库」的项目构想，以及 Trae 的使用截图，
-        整理制作成当前的这份 <strong>HTML 汇总网页</strong>。
-      </p>
-
-      <div class="feeling">
-        <span class="label">💭 个人使用感受</span>
-        <p>速度比较快，而且输出比较清晰，很好用。</p>
-      </div>
-
-      <div class="callout">
-        定位：汇总与交付层 —— 输入是各处积累的设想与素材，输出是结构化、可直接查看分享的成果文档。
-      </div>
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="logo">
+      <span class="dot">书</span>
+      <span>教材智能问答<small>学生端 · 检索式答疑</small></span>
     </div>
-  </details>
-
-  <!-- ============ Trae ============ -->
-  <details class="accordion trae">
-    <summary>
-      <span class="badge">T</span>
-      <span class="summary-text">
-        <h2>Trae</h2>
-        <span class="tagline">知识问答与可视化演示 · 附使用截图</span>
-      </span>
-      <span class="chevron">▾</span>
-    </summary>
-
-    <div class="body">
-      <h3>使用情况（来自截图）</h3>
-      <p>
-        在 Trae 中向 Agent 提问了一个<strong>开放性知识问题</strong>（"询问有关雷达系统的一些基础知识，例如不同天线结构的特点"），
-        Agent 花费约 6 分 27 秒完成任务，并给出了结构化的回答：
-      </p>
-      <ul>
-        <li><strong>分层组织答案</strong>：按「雷达基本原理 → 系统组成 → 天线类型与优缺点总结」三大块展开，条理清晰。</li>
-        <li><strong>表格化呈现</strong>：用表格把"测什么、物理量、公式近似、关键部件"对应起来（如距离 R = c·Δt/2、速度、角度测量等）。</li>
-        <li><strong>动态 Widget 渲染</strong>：Agent 直接生成了 HTML 动态图（Widget 3 dynamic diagram），可实时预览雷达系统组成图，并且代码可展开查看、支持复制。</li>
-        <li><strong>自适应主题</strong>：生成的 Widget 内置了 light / dark 两套配色变量，能跟随界面主题切换。</li>
-      </ul>
-
-      <div class="screenshot">
-        <img src="C:/Users/z1186/Desktop/trae-share-1791552631824.png" alt="Trae 使用截图：雷达基础知识问答与动态 Widget">
-        <div class="screenshot-caption">Trae 使用截图：雷达基础知识问答，包含结构化讲解、数据表格与动态 HTML Widget</div>
-      </div>
-
-      <div class="feeling">
-        <span class="label">💭 个人使用感受</span>
-        <p>整体感觉比较慢，不过每一个问题都会给出相应的代码，可视化效果不错。</p>
-      </div>
-
-      <div class="callout">
-        特点：擅长把知识类问答<strong>讲清楚、画出来</strong>——文字、表格、动态图结合，适合用来做知识梳理和演示。
-      </div>
+    <div class="bookpick" id="bookpick">
+      <span>当前教材</span>
+      <select id="bookSelect"></select>
     </div>
-  </details>
-
-  <!-- ============ Codex ============ -->
-  <details class="accordion codex">
-    <summary>
-      <span class="badge">C</span>
-      <span class="summary-text">
-        <h2>Codex</h2>
-        <span class="tagline">项目构想阶段 · 学生教师知识库系统</span>
-      </span>
-      <span class="chevron">▾</span>
-    </summary>
-
-    <div class="body">
-      <h3>项目定位</h3>
-      <p>
-        在 Codex 中完成了「<strong>学校知识库系统</strong>」的初步设想——一个让学生<strong>查知识、学知识</strong>、
-        让教师<strong>管知识、做检查</strong>的平台。目前仍处于构想阶段，尚未进入开发。
-      </p>
-
-      <div class="two-col">
-        <div class="mini-card blue">
-          <h4>🎓 学生端：查知识、学知识</h4>
-          <ul>
-            <li>按关键词、课程、年级或知识点搜索</li>
-            <li>查看知识讲解、相关资料、例题和引用来源</li>
-            <li>收藏内容，记录自己的学习进度</li>
-            <li>用日常说法提问，系统从学校整理的资料中找答案并标出出处</li>
-          </ul>
-        </div>
-        <div class="mini-card teal">
-          <h4>🧑‍🏫 教师端：管知识、做检查</h4>
-          <ul>
-            <li>上传或整理讲义、题目、参考资料</li>
-            <li>添加课程、年级、章节等标签，方便检索</li>
-            <li>布置小测验或检查任务</li>
-            <li>查看完成情况与薄弱知识点分布</li>
-          </ul>
-        </div>
-      </div>
-
-      <h3>"检测"的两层含义</h3>
-      <p>
-        教师端的"检测"包含两件事：<strong>① 检测学生掌握情况</strong>（测验、答题统计）；
-        <strong>② 检查资料内容质量</strong>（是否正确、完整、适合发布）。第一版不把两者做复杂。
-      </p>
-
-      <h3>切入点：先回答三个问题</h3>
-      <ul>
-        <li><strong>谁会用？</strong>例如某门课的学生和任课教师。</li>
-        <li><strong>要查什么？</strong>例如教师提供的讲义、知识点说明和练习题。</li>
-        <li><strong>查完要做什么？</strong>例如学生找到答案后完成练习，教师看到完成情况。</li>
-      </ul>
-
-      <h3>第一版核心流程</h3>
-      <ol class="steps">
-        <li>教师上传资料，填写标题、课程、章节等信息</li>
-        <li>学生用关键词搜索资料</li>
-        <li>学生查看资料和来源</li>
-        <li>教师发布简单练习，查看答题结果</li>
-      </ol>
-
-      <div class="feeling">
-        <span class="label">💭 个人使用感受</span>
-        <p>响应比较快速，而且讲解得很清楚，思路容易跟上。</p>
-      </div>
-
-      <div class="callout">
-        后续规划：等核心流程跑通之后，再考虑<strong>自然语言问答、智能推荐、自动批改、学情分析</strong>等进阶功能。
-      </div>
+    <div class="tabs">
+      <button data-view="student" class="on">学生问答</button>
+      <button data-view="reader">目录阅读</button>
+      <button data-view="import">教材录入</button>
+      <button data-view="library">书库管理</button>
     </div>
-  </details>
-
-  <!-- ============ 我的信息 ============ -->
-  <div class="profile">
-    <h2>关于我</h2>
-    <div class="avatar">👤</div>
-    <div class="info-grid">
-      <span class="info-item"><strong>姓名：</strong>周洲</span>
-      <span class="info-item"><strong>班级：</strong>大数据1班</span>
-    </div>
-    <p class="footnote">
-      Agent 使用情况汇总 · 更新于 2026 年 10 月 9 日
-    </p>
   </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ========== 学生问答 ========== -->
+  <section class="view on" id="view-student">
+    <div class="card pad" style="border:0;background:transparent;box-shadow:none">
+      <div class="hero">
+        <h1 id="heroTitle">向教材提问</h1>
+        <p id="heroSub">输入你的疑问，系统会在教材原文中找出最相关的段落，并告诉你出自哪一章哪一节。</p>
+        <div class="searchbox">
+          <input id="q" placeholder="例如：牛顿第一定律的内容是什么？" autocomplete="off">
+          <button class="btn" id="ask">提问</button>
+        </div>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div id="thread"></div>
+    </div>
+  </section>
+
+  <!-- ========== 目录阅读 ========== -->
+  <section class="view" id="view-reader">
+    <div class="reader">
+      <div class="card toc"><h4>目录</h4><div id="toc"></div></div>
+      <div class="card reader-body" id="readerBody"><div class="empty">从左侧目录选择一章开始阅读</div></div>
+    </div>
+  </section>
+
+  <!-- ========== 教材录入 ========== -->
+  <section class="view" id="view-import">
+    <div class="grid2">
+      <div class="card pad">
+        <h3 style="margin:0 0 4px">导入教材</h3>
+        <p class="hint" style="margin:0 0 16px">
+          支持 <b>.docx</b>（离线解析）、<b>.txt / .md</b>、<b>.pdf</b>（首次需联网加载解析库）、<b>.json</b>（本工具导出的书库备份）。
+        </p>
+        <div class="drop" id="drop">
+          <div class="big">📘</div>
+          <b>点击选择文件，或把文件拖到这里</b>
+          <div class="hint">建议单次导入一本教材（正文即可，封面与目录页可保留）</div>
+          <input type="file" id="file" accept=".docx,.txt,.md,.markdown,.pdf,.json" hidden>
+        </div>
+        <div class="prog" id="prog"><i></i></div>
+        <div id="parseInfo" class="hint" style="margin-top:10px"></div>
+
+        <div class="field">
+          <label>书名</label>
+          <input id="bkTitle" placeholder="自动取自文件名，可修改">
+        </div>
+        <div class="field">
+          <label>学科 / 年级（可选）</label>
+          <input id="bkSubject" placeholder="例如：初中物理 · 八年级">
+        </div>
+        <div class="field">
+          <label>或直接粘贴文本（可选，留空则以文件为准）</label>
+          <textarea id="paste" placeholder="把教材内容粘贴到这里，空行分段；以「第X章」「1.2」开头的行会自动识别为标题。"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn" id="doImport">确认导入</button>
+          <button class="btn ghost" id="clearImport">清空</button>
+          <button class="btn ghost" id="loadDemo">载入示例教材</button>
+        </div>
+      </div>
+
+      <div class="card pad">
+        <h3 style="margin:0 0 4px">解析预览</h3>
+        <p class="hint" style="margin:0">确认章节切分是否合理，再点「确认导入」。</p>
+        <div class="kv" id="stat"></div>
+        <div class="preview" id="preview" style="margin-top:14px">
+          <div class="empty" style="padding:40px 10px">还没有内容</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 书库管理 ========== -->
+  <section class="view" id="view-library">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <h3 style="margin:0">我的书库</h3>
+      <span class="hint" id="libHint"></span>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn ghost sm" id="loadDemo2">载入示例教材</button>
+        <button class="btn ghost sm" id="exportAll">导出全部备份</button>
+      </div>
+    </div>
+    <div class="lib" id="lib"></div>
+    <p class="hint" style="margin-top:18px">
+      提示：教材与收藏保存在本机浏览器（localStorage）中，换电脑或清理浏览器数据会丢失，重要教材请用「导出备份」保存。
+    </p>
+  </section>
 
 </div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   教材智能问答 · 学生端
+   纯前端实现：文件解析 → 章节切分 → 片段索引 → BM25 检索
+   ========================================================= */
+// 在 DOM 被改动之前留存一份纯净源码，用于「打包成可分享网页」
+const __SRC__ = document.documentElement.outerHTML;
+
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const LS = {
+  books:'bq.books.v1', cur:'bq.cur.v1', favs:'bq.favs.v1', hist:'bq.hist.v1'
+};
+
+let BOOKS = load(LS.books, []);
+let CUR   = load(LS.cur, null);
+let FAVS  = load(LS.favs, []);
+let HIST  = load(LS.hist, []);
+const IDX = new Map();          // bookId -> index
+let DRAFT = null;               // 待导入的解析结果
+
+function load(k, d){ try{ const v = localStorage.getItem(k); return v? JSON.parse(v): d; }catch(e){ return d; } }
+function save(k, v){
+  try{ localStorage.setItem(k, JSON.stringify(v)); return true; }
+  catch(e){ toast('本机存储空间不足，教材过大，请删除部分教材'); return false; }
+}
+function toast(msg, ms=2200){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('on'), ms);
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2,9);
+
+/* ===================== 1. 文件解析 ===================== */
+
+// ---------- ZIP（用于 docx，离线，无需第三方库） ----------
+async function readZip(file){
+  if (typeof DecompressionStream === 'undefined') throw new Error('当前浏览器不支持解压，请用 Chrome / Edge 新版本');
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const dv  = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= Math.max(0, buf.length - 22 - 65535); i--){
+    if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('不是有效的 docx 文件');
+  const n = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const ents = {};
+  const td = new TextDecoder('utf-8');
+  for (let i = 0; i < n; i++){
+    if (off + 46 > buf.length || dv.getUint32(off, true) !== 0x02014b50) break;
+    const method   = dv.getUint16(off + 10, true);
+    const compSize = dv.getUint32(off + 20, true);
+    const nameLen  = dv.getUint16(off + 28, true);
+    const extraLen = dv.getUint16(off + 30, true);
+    const cmtLen   = dv.getUint16(off + 32, true);
+    const localOff = dv.getUint32(off + 42, true);
+    const name = td.decode(buf.subarray(off + 46, off + 46 + nameLen));
+    ents[name] = { method, compSize, localOff };
+    off += 46 + nameLen + extraLen + cmtLen;
+  }
+  async function readEntry(name){
+    const e = ents[name];
+    if (!e) return null;
+    const nl = dv.getUint16(e.localOff + 26, true);
+    const el = dv.getUint16(e.localOff + 28, true);
+    const start = e.localOff + 30 + nl + el;
+    const data = buf.subarray(start, start + e.compSize);
+    if (e.method === 0) return td.decode(data);
+    const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return await new Response(stream).text();
+  }
+  return { readEntry, ents };
+}
+
+// ---------- docx ----------
+async function parseDocx(file){
+  const zip = await readZip(file);
+  const xml = await zip.readEntry('word/document.xml');
+  if (!xml) throw new Error('docx 中未找到正文');
+  const blocks = [];
+  const re = /<w:p\b[\s\S]*?<\/w:p>|<w:tbl\b[\s\S]*?<\/w:tbl>/g;
+  let m;
+  while ((m = re.exec(xml))){
+    const node = m[0];
+    let text = '';
+    const tRe = /<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g;
+    let t;
+    while ((t = tRe.exec(node))) text += t[1];
+    if (!text.trim()) continue;
+    text = decodeEnt(text.replace(/&amp;/g,'&'));
+    // 标题判定：outlineLvl 或 pStyle
+    let level = 0;
+    const ol = node.match(/<w:outlineLvl\s+w:val="(\d+)"/);
+    if (ol){ const v = parseInt(ol[1],10); level = v >= 0 && v <= 8 ? v + 1 : 1; }
+    if (!level){
+      const st = node.match(/w:pStyle[^>]*?w:val="([^"]+)"/) || node.match(/w:val="([^"]+)"[^>]*?w:pStyle/);
+      if (st && /heading|标题|heading\s*\d/i.test(st[1])){
+        const num = (st[1].match(/(\d+)/) || [0,1])[1];
+        level = Math.min(4, Math.max(1, parseInt(num,10) || 1));
+      }
+    }
+    blocks.push({ text: text.trim(), level: level || null });
+  }
+  return blocks;
+}
+function decodeEnt(s){
+  return s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'");
+}
+
+// ---------- 纯文本 / Markdown ----------
+async function parseText(file){
+  let buf = await file.arrayBuffer();
+  let txt = new TextDecoder('utf-8').decode(buf);
+  if (txt.includes('\uFFFD')) { try { txt = new TextDecoder('gbk').decode(buf); } catch(e){} }
+  return txt.split(/\r?\n/).map(l => ({ text: l, level: null }));
+}
+
+// ---------- PDF（pdf.js，CDN） ----------
+async function parsePdf(file, onProg){
+  await loadScript('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js');
+  if (!window.pdfjsLib) throw new Error('PDF 解析库加载失败');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+  const doc = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const blocks = [];
+  for (let p = 1; p <= doc.numPages; p++){
+    const page = await doc.getPage(p);
+    const tc = await page.getTextContent();
+    const items = (tc.items || []).filter(i => i.str && i.str.trim());
+    // 按 y 坐标聚成行（PDF 文本顺序不一定正确，需排序）
+    const rows = new Map();
+    items.forEach(it => {
+      const y = Math.round(it.transform[5]);
+      if (!rows.has(y)) rows.set(y, []);
+      rows.get(y).push(it);
+    });
+    const ys = Array.from(rows.keys()).sort((a,b)=>b-a);
+    for (const y of ys){
+      const line = rows.get(y).sort((a,b)=>a.transform[4]-b.transform[4])
+                    .map(i=>i.str).join('').replace(/\s+/g,' ').trim();
+      if (line) blocks.push({ text: line, level: null });
+    }
+    blocks.push({ text: '', level: null });   // 分页符
+    onProg && onProg(p / doc.numPages);
+  }
+  return blocks;
+}
+function loadScript(src){
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res;
+    s.onerror = () => rej(new Error('无法加载 ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+/* ===================== 2. 章节识别与切片 ===================== */
+const RE_CH   = /^\s*第\s*[一二三四五六七八九十百千零〇0-9]+\s*[章节篇讲编单元]\s*/;
+const RE_NUM  = /^\s*\d+(?:[.\-]\d+){0,3}\s+\S/;
+const RE_MD   = /^\s*#{1,6}\s+/;
+const RE_CN   = /^\s*[（(]\s*[一二三四五六七八九十0-9]+\s*[）)]/;
+const RE_CN2  = /^\s*[一二三四五六七八九十]+\s*、/;
+
+// 强信号：编号 / Markdown / 括号序号 —— 基本不会误判
+function strongLevel(line){
+  const s = (line||'').trim();
+  if (!s || s.length > 60) return 0;
+  if (RE_MD.test(s)) return Math.min(4, (s.match(/^#+/)||['#'])[0].length);
+  if (RE_CH.test(s)){
+    const unit = (s.match(/第\s*[一二三四五六七八九十百千零〇0-9]+\s*([章节篇讲编单元])/)||[])[1];
+    if (unit === '篇' || unit === '编') return 1;
+    if (unit === '章') return /第\s*[一二三四五六七八九十百千零〇0-9]+\s*章\s*\d/.test(s) ? 2 : 1;
+    if (unit === '节' || unit === '讲') return 2;
+    if (unit === '单元') return 1;
+    return 2;
+  }
+  if (RE_NUM.test(s)){
+    const head = s.match(/^\s*(\d+(?:[.\-]\d+){0,3})/)[1];
+    const rest = s.slice(s.indexOf(head) + head.length).trim();
+    if (rest.length > 34) return 0;                       // 编号后面跟一大段 → 是正文
+    if (/[。！？；，、=＝,!?;]/.test(rest)) return 0;      // 含标点/等号 → 是正文（如「1 m/s = 3.6 km/h」）
+    return Math.min(4, (head.match(/[.]/g)||[]).length + 1);
+  }
+  if (RE_CN.test(s) || RE_CN2.test(s)) return 3;
+  return 0;
+}
+// 弱信号：仅在全书没有任何编号标题时启用（否则容易把正文短句误判成标题）
+function weakLevel(line){
+  const s = (line||'').trim();
+  if (!s || s.length > 24) return 0;
+  if (/[。！？；，、,.!?;:：=（）()【】]/.test(s)) return 0;
+  if (/^[a-z0-9\s]+$/i.test(s)) return 0;
+  return 3;
+}
+
+function cleanTitle(line){
+  return line.replace(RE_MD,'')
+             .replace(/^[（(]\s*[一二三四五六七八九十0-9]+\s*[）)]\s*/,'')
+             .replace(/^\s*第\s*[一二三四五六七八九十百千零〇0-9]+\s*[章节篇讲编单元]\s*/, (m)=>m.trim()+' ')
+             .trim().slice(0, 80);
+}
+
+// blocks: [{text, level}] → 书结构
+function buildBook(title, subject, blocks, source){
+  const chapters = [];
+  const chunks   = [];
+  const stack    = [];               // [{node, level}]
+  let root = null;
+
+  function ensure(level, rawTitle){
+    const name = cleanTitle(rawTitle) || '未命名';
+    while (stack.length && stack[stack.length-1].level >= level) stack.pop();
+    const parent = stack.length ? stack[stack.length-1].node : null;
+    const node = { id: uid(), title: name, level, parent: parent ? parent.id : null, children: [], seqs: [] };
+    chapters.push(node);
+    if (parent) parent.children.push(node.id);
+    stack.push({ node, level });
+    if (!root) root = node;
+    return node;
+  }
+  function pathOf(node){
+    const names = []; let n = node;
+    const byId = new Map(chapters.map(c=>[c.id,c]));
+    while (n){ names.unshift(n.title); n = n.parent ? byId.get(n.parent) : null; }
+    return names.join(' › ');
+  }
+
+  // 无显式标题时也保证有一个容器
+  let cur = null;
+  let buf = [];
+  const hasStrong = blocks.some(b => b.level || strongLevel(b.text));
+  const allowWeak = !hasStrong;
+
+  const flush = () => {
+    if (!buf.length) return;
+    if (!cur){
+      cur = ensure(1, '正文');
+      cur.auto = true;
+    }
+    const para = buf.join('\n').trim();
+    buf = [];
+    if (!para) return;
+    // 长段落按句切分，避免片段过长
+    const pieces = splitLong(para, 320);
+    pieces.forEach(t => {
+      chunks.push({ id: uid(), chapterId: cur.id, path: pathOf(cur), text: t, seq: chunks.length });
+      cur.seqs.push(chunks.length - 1);
+    });
+  };
+
+  for (const b of blocks){
+    const raw = (b.text || '').trim();
+    if (!raw){ flush(); continue; }
+    const lv = b.level || strongLevel(raw) || (allowWeak ? weakLevel(raw) : 0);
+    if (lv){ flush(); cur = ensure(lv, raw); }
+    else buf.push(raw);
+  }
+  flush();
+
+  if (!chunks.length) throw new Error('没有解析到可检索的正文内容');
+
+  return {
+    id: uid(), title, subject: subject || '', source: source || '',
+    createdAt: Date.now(), chapters, chunks,
+    stats: { chars: chunks.reduce((a,c)=>a+c.text.length,0), chunks: chunks.length, chapters: chapters.length }
+  };
+}
+
+function splitLong(text, size){
+  if (text.length <= size) return [text];
+  const sents = text.split(/(?<=[。！？；!?;])/);
+  const out = []; let cur = '';
+  for (const s of sents){
+    if ((cur + s).length > size && cur){ out.push(cur.trim()); cur = s; }
+    else cur += s;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out.filter(Boolean);
+}
+
+/* ===================== 3. 检索索引（BM25） ===================== */
+const STOP = new Set('的了是在和与及有我你他她它们这为就都也很要会能不没有于是并且或把被从对给之其一个上中下于此以'.split(''));
+
+function tokenize(text){
+  const t = (text || '').toLowerCase();
+  const out = [];
+  const latin = t.match(/[a-z][a-z0-9]{1,}|[0-9]+(?:\.[0-9]+)?/g);
+  if (latin) for (const w of latin) out.push(w);
+  const cjk = t.match(/[\u4e00-\u9fff]+/g) || [];
+  for (const run of cjk){
+    if (run.length === 1){ if(!STOP.has(run)) out.push(run); continue; }
+    for (let i = 0; i < run.length; i++){
+      const u = run[i];
+      if (!STOP.has(u)) out.push(u);
+      if (i + 1 < run.length) out.push(run.slice(i, i + 2));
+    }
+  }
+  return out;
+}
+
+function buildIndex(book){
+  const N = book.chunks.length;
+  const df = new Map();
+  const docs = [];
+  let total = 0;
+  for (const c of book.chunks){
+    const tf = new Map();
+    for (const tk of tokenize(c.text)) tf.set(tk, (tf.get(tk)||0) + 1);
+    for (const k of tf.keys()) df.set(k, (df.get(k)||0) + 1);
+    const dl = Array.from(tf.values()).reduce((a,b)=>a+b,0);
+    total += dl;
+    docs.push({ chunk: c, tf, dl });
+  }
+  // 章节标题也编进索引（命中目录时加权）
+  const titleTf = new Map();
+  for (const ch of book.chapters){
+    for (const tk of tokenize(ch.title)) titleTf.set(tk, (titleTf.get(tk)||0) + 1);
+  }
+  return { N, df, docs, avgdl: Math.max(1, total / Math.max(1,N)), titleTf,
+           idf: new Map(Array.from(df, ([k,v]) => [k, Math.log(1 + (N - v + 0.5)/(v + 0.5))])) };
+}
+function getIndex(book){
+  if (!IDX.has(book.id)) IDX.set(book.id, buildIndex(book));
+  return IDX.get(book.id);
+}
+
+function search(book, query, topN = 8){
+  const ix = getIndex(book);
+  const q  = (query || '').trim();
+  if (!q) return [];
+  const qw = new Map();
+  for (const tk of tokenize(q)){
+    const w = tk.length >= 2 ? 1 : 0.35;
+    qw.set(tk, (qw.get(tk)||0) + w);
+  }
+  const k1 = 1.5, b = 0.75;
+  const scored = [];
+  for (const d of ix.docs){
+    let s = 0, hit = 0;
+    for (const [tk, w] of qw){
+      const tf = d.tf.get(tk);
+      if (!tf) continue;
+      hit++;
+      const idf = ix.idf.get(tk) || 0.5;
+      s += w * idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * d.dl / ix.avgdl));
+    }
+    if (!hit) continue;
+    // 完整短语命中加权
+    if (d.chunk.text.includes(q)) s *= 1.45;
+    // 标题命中加权
+    for (const [tk] of qw) if (ix.titleTf.get(tk)) s += 0.35;
+    // 覆盖度
+    s *= (0.6 + 0.4 * hit / qw.size);
+    scored.push({ ...d.chunk, score: s });
+  }
+  scored.sort((a,b)=> b.score - a.score || a.seq - b.seq);
+  if (scored.length) return { list: scored.slice(0, topN), partial: false };
+
+  // 兜底：部分匹配
+  const cand = new Map();
+  for (const [tk] of qw){
+    if (tk.length < 2 && !/[a-z0-9]/.test(tk)) continue;
+    for (const d of ix.docs){
+      if (!d.tf.get(tk)) continue;
+      const o = cand.get(d.chunk.id) || { ...d.chunk, score: 0, hit: 0 };
+      o.score += (ix.idf.get(tk) || 0.5) * 0.5; o.hit++;
+      cand.set(d.chunk.id, o);
+    }
+  }
+  const list = Array.from(cand.values()).sort((a,b)=> b.hit - a.hit || b.score - a.score).slice(0, 5);
+  return { list, partial: true };
+}
+
+function highlight(text, query){
+  const safe = esc(text);
+  const set = new Set(tokenize(query).filter(t => t.length >= 2));
+  const raw = (query || '').trim();
+  if (raw.length >= 2) set.add(raw);
+  const terms = Array.from(set).map(t => esc(t))
+    .filter(t => t.length >= 2)
+    .sort((a,b) => b.length - a.length);          // 长词优先，避免嵌套 <mark>
+  if (!terms.length) return safe;
+  const re = new RegExp(terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'), 'g');
+  return safe.replace(re, m => '<mark>' + m + '</mark>');
+}
+
+/* ===================== 4. 界面渲染 ===================== */
+function curBook(){
+  return BOOKS.find(b => b.id === CUR) || BOOKS[0] || null;
+}
+function renderBookSelect(){
+  const sel = $('#bookSelect');
+  sel.innerHTML = BOOKS.length
+    ? BOOKS.map(b => `<option value="${b.id}" ${b.id===CUR?'selected':''}>${esc(b.title)}</option>`).join('')
+    : `<option value="">（暂无教材）</option>`;
+  $('#bookpick').style.display = BOOKS.length ? '' : 'none';
+  const b = curBook();
+  $('#heroTitle').textContent = b ? '向《' + b.title + '》提问' : '向教材提问';
+  $('#heroSub').textContent   = b
+    ? `已收录 ${b.stats.chapters} 个章节 / ${b.stats.chunks} 个知识片段，答案全部来自教材原文并标注出处。`
+    : '先到「教材录入」导入一本教材，就可以开始提问了。';
+  renderChips();
+}
+function renderChips(){
+  const b = curBook();
+  const box = $('#chips');
+  if (!b){ box.innerHTML = `<button class="chip sec" data-go="import">去导入教材</button>`; return; }
+  const titles = b.chapters.filter(c => c.level <= 2 && c.title !== '正文').slice(0, 6).map(c => c.title);
+  const hist = HIST.slice(0, 3);
+  box.innerHTML = [
+    ...titles.map(t => `<button class="chip" data-q="${esc(t)}">${esc(t)}</button>`),
+    ...hist.map(h => `<button class="chip sec" data-q="${esc(h)}">${esc(h)}</button>`)
+  ].join('');
+}
+
+function ask(){
+  const b = curBook();
+  const q = $('#q').value.trim();
+  if (!b){ toast('请先导入教材'); go('import'); return; }
+  if (!q){ toast('请输入你的问题'); return; }
+
+  HIST = [q, ...HIST.filter(h => h !== q)].slice(0, 10);
+  save(LS.hist, HIST);
+
+  const t0 = performance.now();
+  const r = search(b, q, 8);
+  const ms = Math.round(performance.now() - t0);
+  const top = r.list.length ? r.list[0].score : 1;
+
+  const head = `
+    <div class="qbubble">
+      <div class="av">问</div>
+      <div class="q">${esc(q)}</div>
+    </div>
+    <div class="resultmeta">
+      <span>${r.list.length ? `找到 ${r.list.length} 处相关原文` : '没有找到直接相关的原文'} · 用时 ${ms}ms${r.partial ? ' · 部分关键词匹配' : ''}</span>
+      <span>${esc(b.title)}</span>
+    </div>`;
+
+  if (!r.list.length){
+    $('#thread').innerHTML = head + `
+      <div class="card pad empty" style="max-width:820px;margin:14px auto">
+        <div class="big">🔍</div>
+        <div>换个说法试试，比如只输入核心名词；也可以到「目录阅读」按章节查找。</div>
+      </div>`;
+    return;
+  }
+
+  const body = r.list.map((c, i) => {
+    const rel = top > 0 ? Math.max(0.18, c.score / top) : 0;
+    const pct = Math.round(Math.min(1, rel) * 100);
+    const fav = FAVS.some(f => f.bookId === b.id && f.chunkId === c.id);
+    return `
+      <div class="ans ${i===0?'top':''}" data-chunk="${c.id}">
+        <div class="ans-head">
+          <span class="score"><span class="bar"><i style="width:${pct}%"></i></span>相关度 ${pct}%</span>
+          <span class="path">📖 ${esc(c.path)}</span>
+          ${r.partial ? '<span class="hint">部分匹配</span>' : ''}
+        </div>
+        <div class="ans-body ${i===0?'':'clip'}">${highlight(c.text, q)}</div>
+        <div class="ans-foot">
+          <button class="mini" data-act="expand">展开全文</button>
+          <button class="mini" data-act="locate">在目录中打开</button>
+          <button class="mini ${fav?'on':''}" data-act="fav">${fav?'★ 已收藏':'☆ 收藏'}</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  $('#thread').innerHTML = head + body;
+  renderChips();
+  $('#thread').querySelector('.ans').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+/* ---------- 目录阅读 ---------- */
+function renderToc(){
+  const b = curBook();
+  const box = $('#toc');
+  if (!b){ box.innerHTML = '<div class="hint">暂无教材</div>'; return; }
+  const byId = new Map(b.chapters.map(c=>[c.id,c]));
+  box.innerHTML = '<h4>目录</h4>' + b.chapters.map(c => {
+    let lv = c.level;
+    if (c.title === '正文' && c.auto) lv = 1;
+    return `<a href="javascript:void 0" data-ch="${c.id}" class="lv${Math.min(3,lv)}">${esc(c.title)}</a>`;
+  }).join('');
+}
+function openChapter(chId, hlQuery){
+  const b = curBook(); if (!b) return;
+  const ch = b.chapters.find(c => c.id === chId); if (!ch) return;
+  const byId = new Map(b.chapters.map(c=>[c.id,c]));
+  // 收集本章及其子章节的片段
+  const ids = new Set([ch.id]);
+  b.chapters.forEach(c => { let n = c; while (n){ if (ids.has(n.id)){ ids.add(c.id); break; } n = n.parent ? byId.get(n.parent) : null; } });
+  const list = b.chunks.filter(c => ids.has(c.chapterId));
+  const path = (()=>{ const names=[]; let n=ch; while(n){ names.unshift(n.title); n = n.parent? byId.get(n.parent): null; } return names.join(' › '); })();
+  const idx  = b.chapters.findIndex(c => c.id === chId);
+  const prev = b.chapters[idx-1], next = b.chapters[idx+1];
+
+  $('#readerBody').innerHTML = `
+    <div class="hint" style="margin-bottom:6px">${esc(path)}</div>
+    <h2>${esc(ch.title)}</h2>
+    <div style="margin-top:14px">
+      ${list.length ? list.map(c => `<p class="p">${hlQuery ? highlight(c.text, hlQuery) : esc(c.text)}</p>`).join('')
+                    : '<div class="hint">本章暂无正文内容</div>'}
+    </div>
+    <div class="reader-nav">
+      <button class="mini" data-nav="${prev?prev.id:''}" ${prev?'':'disabled'}>← ${prev?esc(prev.title):'已是第一章'}</button>
+      <button class="mini" data-nav="${next?next.id:''}" ${next?'':'disabled'}>${next?esc(next.title):'已是最后一章'} →</button>
+    </div>`;
+  $$('#toc a').forEach(a => a.classList.toggle('on', a.dataset.ch === chId));
+  $('#readerBody').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* ---------- 书库 ---------- */
+function renderLib(){
+  const box = $('#lib');
+  $('#libHint').textContent = BOOKS.length ? `共 ${BOOKS.length} 本教材，${BOOKS.reduce((a,b)=>a+b.stats.chunks,0)} 个知识片段` : '';
+  if (!BOOKS.length){
+    box.innerHTML = `<div class="card pad empty" style="grid-column:1/-1"><div class="big">📚</div><div>书库还是空的，先导入一本教材吧</div></div>`;
+    return;
+  }
+  box.innerHTML = BOOKS.map(b => `
+    <div class="card bk">
+      <h3>${esc(b.title)}</h3>
+      <div class="meta">${esc(b.subject || '未填学科')} · ${b.stats.chapters} 章 / ${b.stats.chunks} 片段 / ${(b.stats.chars/10000).toFixed(1)} 万字</div>
+      <div class="meta">来源：${esc(b.source || '手动录入')} · ${new Date(b.createdAt).toLocaleString('zh-CN')}</div>
+      <div class="acts">
+        <button class="mini ${b.id===CUR?'on':''}" data-use="${b.id}">${b.id===CUR?'当前使用中':'设为当前'}</button>
+        <button class="mini" data-pack="${b.id}">打包分享</button>
+        <button class="mini" data-exp="${b.id}">导出</button>
+        <button class="mini" data-del="${b.id}">删除</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ===================== 5. 导入流程 ===================== */
+async function handleFile(file){
+  const name = file.name.toLowerCase();
+  DRAFT = null;
+  setProg(0.05, true);
+  $('#parseInfo').textContent = '正在解析 ' + file.name + ' …';
+  try{
+    let blocks = [], src = file.name;
+    if (name.endsWith('.docx'))       blocks = await parseDocx(file);
+    else if (name.endsWith('.pdf'))   blocks = await parsePdf(file, p => setProg(0.1 + p*0.8));
+    else if (name.endsWith('.json')){
+      const data = JSON.parse(await file.text());
+      const arr = Array.isArray(data) ? data : [data];
+      arr.forEach(bk => { if (bk && bk.chunks){ addBook(bk); } });
+      setProg(1); $('#parseInfo').textContent = '已导入备份中的 ' + arr.length + ' 本教材';
+      renderAll(); toast('备份导入完成'); return;
+    }
+    else                              blocks = await parseText(file);
+
+    if (!blocks.length) throw new Error('未解析到任何文本');
+    const title = ($('#bkTitle').value.trim()) || file.name.replace(/\.[^.]+$/, '');
+    DRAFT = buildBook(title, $('#bkSubject').value.trim(), blocks, file.name);
+    $('#bkTitle').value = DRAFT.title;
+    renderPreview(DRAFT);
+    setProg(1);
+    $('#parseInfo').textContent = `解析完成：${DRAFT.chapters.length} 个章节 / ${DRAFT.chunks.length} 个片段`;
+  }catch(err){
+    console.error(err);
+    setProg(0);
+    $('#parseInfo').innerHTML = `<span style="color:#c0392b">解析失败：${esc(err.message)}</span>`;
+    toast('解析失败：' + err.message, 3200);
+  }
+}
+function setProg(v, show){
+  const p = $('#prog');
+  p.style.display = show || v > 0 ? 'block' : 'none';
+  p.querySelector('i').style.width = Math.round(v*100) + '%';
+}
+function renderPreview(book){
+  const byId = new Map(book.chapters.map(c=>[c.id,c]));
+  const counts = new Map();
+  book.chunks.forEach(c => counts.set(c.chapterId, (counts.get(c.chapterId)||0)+1));
+  $('#stat').innerHTML = `
+    <div>章节 <b>${book.stats.chapters}</b></div>
+    <div>知识片段 <b>${book.stats.chunks}</b></div>
+    <div>字数 <b>${(book.stats.chars/10000).toFixed(1)} 万</b></div>`;
+  $('#preview').innerHTML = book.chapters.slice(0, 120).map(c => {
+    let indent = 0, n = c;
+    while (n && n.parent){ indent++; n = byId.get(n.parent); }
+    return `<div style="padding:5px 0 5px ${indent*14}px;border-bottom:1px solid var(--line-2);
+              font-size:13.5px;${c.level===1?'font-weight:600':''}">
+              ${c.level===1?'▍':'·'} ${esc(c.title)}
+              <span class="hint">（${counts.get(c.id)||0} 片段）</span>
+            </div>`;
+  }).join('') + (book.chapters.length > 120 ? '<div class="hint" style="padding:8px 0">…共 '+book.chapters.length+' 个章节</div>' : '');
+}
+function addBook(b){
+  BOOKS.unshift(b);
+  save(LS.books, BOOKS);
+}
+function doImport(){
+  let book = null;
+  if (DRAFT){ book = DRAFT; }
+  else {
+    const txt = $('#paste').value.trim();
+    if (!txt){ toast('请先选择文件或粘贴文本'); return; }
+    try{
+      book = buildBook($('#bkTitle').value.trim() || '未命名教材', $('#bkSubject').value.trim(),
+                       txt.split(/\r?\n/).map(l=>({text:l, level:null})), '手动粘贴');
+    }catch(e){ toast(e.message); return; }
+  }
+  book.title   = $('#bkTitle').value.trim() || book.title;
+  book.subject = $('#bkSubject').value.trim();
+  addBook(book);
+  CUR = book.id; save(LS.cur, CUR);
+  DRAFT = null;
+  $('#paste').value = ''; $('#file').value = '';
+  $('#preview').innerHTML = '<div class="empty" style="padding:40px 10px">还没有内容</div>';
+  $('#stat').innerHTML = ''; $('#parseInfo').textContent = ''; setProg(0);
+  renderAll();
+  go('student');
+  toast(`《${book.title}》导入成功，共 ${book.stats.chunks} 个知识片段`);
+}
+
+/* ===================== 6. 事件绑定 ===================== */
+function go(v){
+  $$('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  $$('.view').forEach(s => s.classList.toggle('on', s.id === 'view-' + v));
+  if (v === 'reader'){ renderToc(); const b = curBook(); if (b && b.chapters.length) openChapter(b.chapters[0].id); }
+  if (v === 'library') renderLib();
+  window.scrollTo({ top:0 });
+}
+
+$('#ask').onclick = ask;
+$('#q').onkeydown = e => { if (e.key === 'Enter') ask(); };
+
+$('#thread').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-act]'); if (!btn) return;
+  const card = btn.closest('.ans'); const b = curBook(); const cid = card.dataset.chunk;
+  const act = btn.dataset.act;
+  if (act === 'expand'){
+    const body = card.querySelector('.ans-body');
+    const clipped = body.classList.toggle('clip');
+    btn.textContent = clipped ? '展开全文' : '收起';
+  }
+  if (act === 'locate'){
+    const ch = b.chunks.find(c => c.id === cid);
+    go('reader'); openChapter(ch.chapterId, $('#q').value.trim());
+  }
+  if (act === 'fav'){
+    const i = FAVS.findIndex(f => f.bookId === b.id && f.chunkId === cid);
+    if (i >= 0){ FAVS.splice(i,1); btn.textContent = '☆ 收藏'; btn.classList.remove('on'); toast('已取消收藏'); }
+    else {
+      const c = b.chunks.find(x => x.id === cid);
+      FAVS.push({ bookId:b.id, bookTitle:b.title, chunkId:cid, path:c.path, text:c.text, at:Date.now() });
+      btn.textContent = '★ 已收藏'; btn.classList.add('on'); toast('已加入收藏');
+    }
+    save(LS.favs, FAVS);
+  }
+});
+
+$('#chips').addEventListener('click', e => {
+  const btn = e.target.closest('.chip'); if (!btn) return;
+  if (btn.dataset.go){ go(btn.dataset.go); return; }
+  $('#q').value = btn.dataset.q; ask();
+});
+
+$('#toc').addEventListener('click', e => {
+  const a = e.target.closest('a[data-ch]'); if (!a) return;
+  openChapter(a.dataset.ch);
+});
+$('#readerBody').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-nav]'); if (!btn || !btn.dataset.nav) return;
+  openChapter(btn.dataset.nav);
+});
+
+// 录入
+const drop = $('#drop'), fileIn = $('#file');
+drop.onclick = () => fileIn.click();
+fileIn.onchange = e => { if (e.target.files[0]) handleFile(e.target.files[0]); };
+['dragenter','dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+
+$('#doImport').onclick = doImport;
+$('#clearImport').onclick = () => {
+  DRAFT = null; $('#paste').value = ''; $('#file').value = ''; $('#bkTitle').value = ''; $('#bkSubject').value = '';
+  $('#preview').innerHTML = '<div class="empty" style="padding:40px 10px">还没有内容</div>';
+  $('#stat').innerHTML = ''; $('#parseInfo').textContent = ''; setProg(0);
+};
+$('#loadDemo').onclick = loadDemo;
+$('#loadDemo2').onclick = loadDemo;
+$('#bookSelect').onchange = e => { CUR = e.target.value; save(LS.cur, CUR); renderAll(); go('student'); };
+
+/* 把教材"烧录"进一份新的 HTML：对方双击打开就有这本教材，不用再导入 */
+function packBook(b){
+  const studentMode = confirm(
+    `将《${b.title}》打包成一个独立的 HTML 网页文件，可直接发给学生（微信/邮件/网盘均可），对方双击打开就能提问，无需导入。\n\n` +
+    `【确定】学生版：只保留「学生问答 / 目录阅读」，隐藏录入与书库入口\n` +
+    `【取消】完整版：保留全部功能（对方还能继续导入别的教材）`
+  );
+  // 标签必须拼出来：源码注释里若出现字面开标签，会让定位错位、把注入块插进脚本中间而弄坏页面。
+  // 定位方式：先找主脚本里的唯一锚点，再往回找它前面最近的一个开标签，稳。
+  const OPEN = '<' + 'script>', CLOSE = '<' + '/script>';
+  const safe = JSON.stringify([b]).replace(/<\//g, '<\\/').replace(/<!--/g, '<\\!--');
+  const inject = OPEN + 'window.__PRELOAD__=' + safe +
+    ';window.__PRELOAD_CUR__=' + JSON.stringify(b.id) +
+    ';window.__PRELOAD_STU__=' + (studentMode ? 'true' : 'false') + ';' + CLOSE + '\n';
+  const anchor = __SRC__.indexOf('const __SRC__ = document');
+  const i = anchor > 0 ? __SRC__.lastIndexOf(OPEN, anchor) : __SRC__.indexOf(OPEN);
+  let html = i < 0 ? __SRC__ : __SRC__.slice(0, i) + inject + __SRC__.slice(i);
+  html = '<!DOCTYPE html>\n' + html.replace(/<title>[\s\S]*?<\/title>/,
+         '<title>' + esc(b.title) + ' · 智能问答学生端</title>');
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' }));
+  a.download = b.title.replace(/[\\/:*?"<>|]/g,'_') + '-学生端.html';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  toast('已生成分享网页（约 ' + Math.round(html.length/1024) + ' KB），发给对方双击即可使用', 3600);
+}
+
+$('#lib').addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  const b = BOOKS.find(x => x.id === btn.dataset.use || x.id === btn.dataset.exp ||
+                            x.id === btn.dataset.del || x.id === btn.dataset.pack);
+  if (!b) return;
+  if (btn.dataset.pack){ packBook(b); return; }
+  if (btn.dataset.use){ CUR = b.id; save(LS.cur, CUR); renderAll(); toast('已切换到《'+b.title+'》'); }
+  if (btn.dataset.exp){
+    const blob = new Blob([JSON.stringify(b)], { type:'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = b.title + '.book.json'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }
+  if (btn.dataset.del){
+    if (!confirm(`确定删除《${b.title}》？删除后无法恢复，建议先导出备份。`)) return;
+    BOOKS = BOOKS.filter(x => x.id !== b.id); save(LS.books, BOOKS);
+    if (CUR === b.id){ CUR = BOOKS[0] ? BOOKS[0].id : null; save(LS.cur, CUR); }
+    IDX.delete(b.id); renderAll();
+  }
+});
+$('#exportAll').onclick = () => {
+  if (!BOOKS.length){ toast('书库为空'); return; }
+  const blob = new Blob([JSON.stringify(BOOKS)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = '教材书库备份.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+};
+$$('.tabs button').forEach(b => b.onclick = () => go(b.dataset.view));
+
+/* ===================== 7. 示例教材 ===================== */
+function loadDemo(){
+  const raw = `第一章 运动和力
+1.1 机械运动
+物理学里把物体位置的变化叫做机械运动。判断一个物体是否在运动，要看它相对于参照物的位置有没有改变，这就是运动和静止的相对性。
+选择参照物时，一般不以被研究的物体本身作为参照物。同一物体选择不同的参照物，运动情况可能不同。
+
+1.2 速度
+速度是表示物体运动快慢的物理量，等于路程与时间之比，公式为 v = s / t。
+速度的国际单位是米每秒（m/s），常用单位还有千米每小时（km/h），换算关系是 1 m/s = 3.6 km/h。
+匀速直线运动是指速度大小和方向都不变的运动；变速运动用平均速度粗略描述快慢。
+
+1.3 牛顿第一定律
+牛顿第一定律的内容：一切物体在没有受到外力作用的时候，总保持匀速直线运动状态或静止状态。
+这一定律是在实验基础上通过科学推理得出的，不能用实验直接验证。
+物体保持原来运动状态不变的性质叫做惯性。惯性的大小只与物体的质量有关，质量越大惯性越大，与物体运动的速度无关。
+
+第二章 压强与浮力
+2.1 压强
+压力的作用效果不仅跟压力大小有关，还跟受力面积有关。物体所受压力与受力面积之比叫做压强，公式为 p = F / S。
+压强的单位是帕斯卡（Pa），1 Pa = 1 N/m²。增大压强可以增大压力或减小受力面积，减小压强则相反。
+
+2.2 液体压强
+液体内部向各个方向都有压强，同种液体在同一深度各方向的压强相等。
+液体压强随深度增加而增大，计算公式为 p = ρgh，其中 ρ 是液体密度，g 取 9.8 N/kg，h 是深度。
+连通器里装同种液体且液体不流动时，各容器中的液面高度总是相同的。
+
+2.3 浮力
+浸在液体中的物体受到液体向上托的力叫做浮力，方向竖直向上。
+阿基米德原理：浸在液体中的物体所受浮力，大小等于它排开的液体所受的重力，公式为 F浮 = ρ液 g V排。
+物体的浮沉条件：当浮力大于重力时物体上浮，等于时悬浮或漂浮，小于时下沉。
+
+第三章 简单机械与功
+3.1 杠杆
+一根硬棒在力的作用下能绕固定点转动，这根硬棒就是杠杆。杠杆的五要素是支点、动力、阻力、动力臂、阻力臂。
+杠杆的平衡条件是：动力 × 动力臂 = 阻力 × 阻力臂，即 F1L1 = F2L2。
+省力杠杆的动力臂大于阻力臂，费力杠杆的动力臂小于阻力臂，等臂杠杆两者相等。
+
+3.2 功和功率
+力对物体做的功等于力与物体在力的方向上通过距离的乘积，公式为 W = Fs，单位是焦耳（J）。
+做功的两个必要因素：作用在物体上的力，以及物体在这个力的方向上移动的距离。
+功率表示做功的快慢，等于功与做功时间之比，公式为 P = W / t，单位是瓦特（W）。
+
+3.3 机械效率
+有用功跟总功的比值叫做机械效率，公式为 η = W有 / W总，机械效率总小于 1。
+提高机械效率的主要方法是减小额外功，例如减小摩擦、减轻机械自重。`;
+  const blocks = raw.split(/\r?\n/).map(l => ({ text:l, level:null }));
+  const book = buildBook('示例教材 · 初中物理（力与运动）', '初中物理 · 八年级', blocks, '内置示例');
+  addBook(book); CUR = book.id; save(LS.cur, CUR);
+  renderAll(); go('student');
+  toast('已载入示例教材，试着问「牛顿第一定律」或「浮力怎么计算」');
+}
+
+/* ===================== 8. 启动 ===================== */
+// 分享版：读取烧录在页面里的教材
+(function(){
+  const pre = window.__PRELOAD__;
+  if (!Array.isArray(pre) || !pre.length) return;
+  const have = new Set(BOOKS.map(b => b.id));
+  let added = 0;
+  pre.forEach(b => { if (b && b.chunks && !have.has(b.id)){ BOOKS.push(b); added++; } });
+  if (added) save(LS.books, BOOKS);
+  if (!CUR && window.__PRELOAD_CUR__) CUR = window.__PRELOAD_CUR__;
+  if (window.__PRELOAD_STU__) document.body.classList.add('student-only');
+})();
+
+function renderAll(){
+  if (!CUR && BOOKS.length){ CUR = BOOKS[0].id; save(LS.cur, CUR); }
+  if (document.body.classList.contains('student-only')){
+    $$('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === 'student'));
+    $$('.view').forEach(s => s.classList.toggle('on', s.id === 'view-student'));
+  }
+  renderBookSelect(); renderToc(); renderLib();
+}
+renderAll();
+if (!BOOKS.length) $('#chips').innerHTML = `<button class="chip sec" data-go="library">载入示例教材体验一下</button>`;
+</script>
 </body>
 </html>
